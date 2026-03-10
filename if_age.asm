@@ -9,44 +9,43 @@ section .data
 	menor_len equ $ - menor
 
 section .bss
-	age resb 32
+	age resb 10
 
 section .text
 	global _start
 
 _start:
-	; ---  Pregunta del sistema ---
+	; 1. Pregunta del sistema
 	mov rax, 1
 	mov rdi, 1
 	mov rsi, question
 	mov rdx, question_len
 	syscall
 
-	; --- Respuesta del usuario ---
+	; 2. Respuesta del usuario
 	mov rax, 0
 	mov rdi, 0
 	mov rsi, age
-	mov rdx, 16
+	mov rdx, 10
 	syscall
 
-	; ---  Conversion de datos ---
-	xor rax, rax
-	xor rbx, rbx
+	; 3. Limpiar registros antes del bucle
+	xor rax, rax	; RAX sera el cumulador
+	mov rsi, age	; RSI apunta al inicio de los datos
+
+bucle_conversion:
+	movzx rbx, byte [rsi]
+	cmp bl, 10	; Es bl == enter?, (10 == \n)
+	je finalizar_loop	; Si es enter, saltamos a comparar
+
+	sub bl, 48	; ASCII a valor real
+	imul rax, 10	; Acumulador x 10
+	add rax, rbx	; Sumar el nuevo digito
 	
-	; ---  Decodificar primer digito ---
-	mov al, [age]
-	sub al, 48 
-	mov dl, 10
-	mul dl
-
-	; --- Decodificar segundo digito ---
-	mov bl, [age + 1]
-	sub bl, 48
-	add al, bl
-
-	; --- Validacion de edad ---
-	cmp al, 18	; Es la edad (20)  menor que 18?
-	jl is_menor
+finalizar_loop:
+	; Ahora RAX tiene el numero real
+	cmp rax, 18
+	jl is_menor	; si RAX < 18, salta a menor
 
 is_major:
 	mov rax, 1
